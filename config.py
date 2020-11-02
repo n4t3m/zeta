@@ -1,5 +1,5 @@
 TOK = ""
-PREFIX = "pr!"
-STATUS = "Current Demo: Auto-Prune"
+PREFIX = "az!"
+STATUS = "Zeta | az!"
 DEFAULT_DELAY = 300
-DESC = "Auto-Prune Bot. Automatically delete messages in a channel after a certain amount of time."
+DESC = "A helpful utility bot made by Nathan Melwani."
