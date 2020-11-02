@@ -1,4 +1,4 @@
-TOK = "NDMyNDE5MzYyMDc1MzEyMTM4.Wsmv6Q.099piq_G4sqhjghvV6_o3Gnwzks"
+TOK = ""
 PREFIX = "pr!"
 STATUS = "Current Demo: Auto-Prune"
 DEFAULT_DELAY = 300
