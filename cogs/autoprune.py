@@ -58,7 +58,7 @@ class AutoPrune(commands.Cog):
             print("This channel already has pruning enabled. Use the remove command in this channel if you would like to remove it.")
         
 
-        await ctx.send("Added " + ctx.message.channel.name + " to blacklisted channels.")
+        await ctx.send("Added " + ctx.message.channel.name + " to pruned channels. Use the channels command to see which channels are being pruned.")
 
         with open("./ap_data/guilds.json", "w") as write_file:
             json.dump(data, write_file)
@@ -123,7 +123,8 @@ class AutoPrune(commands.Cog):
 
         data[str(ctx.guild.id)].remove(ctx.message.channel.id)
 
-##
+        with open("./ap_data/guilds.json", "w") as write_file:
+            json.dump(data, write_file)
 
         with open('./ap_data/delays.json') as json_file:
             existingData = json.load(json_file)
@@ -137,10 +138,9 @@ class AutoPrune(commands.Cog):
         
         await ctx.send("Removed channel: " + ctx.channel.name)
 
-        with open("./ap_data/guilds.json", "w") as write_file:
+        with open("./ap_data/delays.json", "w") as write_file:
             json.dump(data, write_file)
 
-        await self.remove_msg(ctx.message, 5)
 
     @commands.command()
     async def delay(self, ctx, d: int):

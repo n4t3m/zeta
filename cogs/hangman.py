@@ -41,7 +41,7 @@ class Hangman(commands.Cog):
 
                         self.games[str(message.channel.id)][2]=temp
                         await message.channel.send("Correct!\n" + self.games[str(message.channel.id)][2])
-                        if "-" not in self.games[str(message.channel.id)][2]:
+                        if "_" not in self.games[str(message.channel.id)][2]:
                             await message.channel.send("**You did it!** The correct word is: " + self.games[str(message.channel.id)][2])
                             del self.games[str(message.channel.id)]
                     else:
@@ -63,7 +63,12 @@ class Hangman(commands.Cog):
             await ctx.send("Starting a game of hangman...")
             word = "word"
             category = "category"
-            self.games[str(ctx.channel.id)] = ["word", "category", "----", 0]
+            guess_str = "```"
+            for x in word:
+                guess_str+="_"
+            guess_str = guess_str + "```"
+            guess_str=guess_str.strip()
+            self.games[str(ctx.channel.id)] = ["```word```", "category", guess_str, 0]
             print(self.games)
         
         #Send Game Progress

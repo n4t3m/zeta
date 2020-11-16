@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-class Test_Cog(commands.Cog):
+class General(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
@@ -31,6 +31,14 @@ class Test_Cog(commands.Cog):
                 pass
         await ctx.send("Guilds: " + str(gcount) + "\nMembers: " + str(memcount))
 
+    @commands.command()
+    async def invite(self, ctx):
+        await ctx.send("Want to invite the bot to your server? Use this link: https://discord.com/oauth2/authorize?client_id=705283045573394493&scope=bot&permissions=270400")
+
+    @commands.command()
+    async def tutorial(self, ctx):
+        await ctx.send("Want to learn how to use the bot? Watch this video: https://www.youtube.com/watch?v=dHQdAGczV5A")
+
     
 def setup(bot):
-    bot.add_cog(Test_Cog(bot))
+    bot.add_cog(General(bot))
