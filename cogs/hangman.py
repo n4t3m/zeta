@@ -61,14 +61,17 @@ class Hangman(commands.Cog):
         #Create Game Instance
         if ctx.guild.id not in self.games:
             await ctx.send("Starting a game of hangman...")
-            word = "word"
+            word = "word two"
             category = "category"
             guess_str = "```"
             for x in word:
-                guess_str+="_"
+                if x == " ":
+                    guess_str+=" "
+                else:
+                    guess_str+="_"
             guess_str = guess_str + "```"
             guess_str=guess_str.strip()
-            self.games[str(ctx.channel.id)] = ["```word```", "category", guess_str, 0]
+            self.games[str(ctx.channel.id)] = ["```" + word + "```", "category", guess_str, 0]
             print(self.games)
         
         #Send Game Progress
