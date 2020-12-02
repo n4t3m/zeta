@@ -26,9 +26,6 @@ class Hangman(commands.Cog):
     async def on_message(self, message):
         if str(message.channel.id) in self.games:
             if message.content.lower() == self.games[str(message.channel.id)][4].lower():
-
-                #await message.channel.send("Correct! The word was " + self.games[str(message.channel.id)][4].title())
-
                 embed=discord.Embed(title="You Guessed It!", description="Good Job " + message.author.mention + "!", color=0xdd293e)
                 embed.add_field(name="The correct word is:", value=self.games[str(message.channel.id)][4].title(), inline=False)
                 embed.set_footer(text="Hangman - Category: " + self.games[str(message.channel.id)][1].title())
@@ -37,7 +34,14 @@ class Hangman(commands.Cog):
                 del self.games[str(message.channel.id)]
             else:
                 if len(message.content) == 1:
-                    if message.content.lower() in self.games[str(message.channel.id)][0].lower() and message.content not in self.games[str(message.channel.id)][2]:
+                    if message.content.lower() in self.games[str(message.channel.id)][0].lower():
+
+                        if message.content.lower() in self.games[str(message.channel.id)][2].lower():
+                            embed=discord.Embed(title="Letter Already Guessed", description="This letter has already been guessed!", color=0xdd293e)
+                            embed.set_footer(text="Hangman - Category: " + self.games[str(message.channel.id)][1].title())
+                            await message.channel.send(embed=embed)
+                            return
+
                         indexes = []
                         for n in range(0,len(self.games[str(message.channel.id)][0])):
                             if self.games[str(message.channel.id)][0][n].lower()==message.content.lower():
@@ -51,8 +55,6 @@ class Hangman(commands.Cog):
                             self.games[str(message.channel.id)][2] = self.games[str(message.channel.id)][2]
 
                         self.games[str(message.channel.id)][2]=temp
-                        #await message.channel.send("Correct!\n" + self.games[str(message.channel.id)][2])
-
                         embed=discord.Embed(title="Correct!", description=message.author.mention + " has guessed a letter correctly.", color=0xdd293e)
                         embed.add_field(name="Current Progress:", value=self.games[str(message.channel.id)][2], inline=False)
                         embed.set_footer(text="Hangman - Category: " + self.games[str(message.channel.id)][1].title())
@@ -73,9 +75,7 @@ class Hangman(commands.Cog):
                             del self.games[str(message.channel.id)]
                     else:
                         #here
-                        if message.content in self.games[str(message.channel.id)][2]:
-                            await message.channel.send("debug: this lettern has already been guessed correctly")
-                            return
+
 
 
                         self.games[str(message.channel.id)][3] = self.games[str(message.channel.id)][3] + 1
@@ -154,7 +154,7 @@ class Hangman(commands.Cog):
             word = temp_str
             word = word.strip()
             self.games[str(ctx.channel.id)] = ["```" + word.lower() + "```",category.title(), guess_str, 0, unchanged_word]
-            print(self.games)
+            #print(self.games)
         
         #Send Game Progress
         await ctx.channel.send(self.games[str(ctx.channel.id)][2])
