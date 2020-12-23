@@ -42,6 +42,11 @@ class General(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    async def server(self, ctx):
+        embed=discord.Embed(title="Click here to join the official support server!", url="https://discord.com/oauth2/authorize?client_id=705283045573394493&scope=bot&permissions=270400")
+        await ctx.send(embed=embed)
+
+    @commands.command()
     async def tutorial(self, ctx):
         await ctx.send("Want to learn how to use the autoprune feature of the bot? Watch this video: https://www.youtube.com/watch?v=dHQdAGczV5A")
 
