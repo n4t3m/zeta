@@ -19,10 +19,14 @@ async def on_ready():
 
 @bot.command()
 async def load(ctx, extension):
+    if ctx.message.author.id != 299685173262286849:
+        return 
     bot.load_extension(f'cogs.{extension}')
 
 @bot.command()
 async def unload(ctx, extension):
+    if ctx.message.author.id != 299685173262286849:
+        return 
     bot.unload_extension(f'cogs.{extension}')
 
 for filename in os.listdir('./cogs'):
