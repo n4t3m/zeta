@@ -43,7 +43,7 @@ class General(commands.Cog):
 
     @commands.command()
     async def server(self, ctx):
-        embed=discord.Embed(title="Click here to join the official support server!", url="https://discord.com/oauth2/authorize?client_id=705283045573394493&scope=bot&permissions=270400")
+        embed=discord.Embed(title="Click here to join the official support server!", url="https://discord.gg/4e25RDd")
         await ctx.send(embed=embed)
 
     @commands.command()
