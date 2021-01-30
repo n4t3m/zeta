@@ -32,6 +32,9 @@ class AutoPrune(commands.Cog):
             existingData = json.load(json_file)
         t_data = existingData
         
+        if message.content.lower().startswith("pr!ignore") and message.author.guild_permissions.administrator:
+            return
+
         if str(message.channel.id) in t_data:
             d = t_data[str(message.channel.id)]
             await self.remove_msg(message, d)
@@ -165,8 +168,7 @@ class AutoPrune(commands.Cog):
             data[str(ctx.channel.id)] = 300
         
         await ctx.send("Current Channel's Delay: " + str(data[str(ctx.channel.id)]) + " seconds." )
-        await ctx.send("Unfortunately all data has been lost (11/1). Please reconfigure your servers to keep using the bot. When you set a delay, that delay only applies to one specific channel, so you must set the delay for each channel you want to use the bot with.")
-
+        
         with open("./ap_data/delays.json", "w") as write_file:
             json.dump(data, write_file)
 
@@ -176,6 +178,10 @@ class AutoPrune(commands.Cog):
         await asyncio.sleep(delay) 
         await message.delete()
         print("A message has been automatically pruned in " + c_name + " in the server " + g_name)
+        return
+
+    @commands.command()
+    async def ignore(self, ctx):
         return
 
     
