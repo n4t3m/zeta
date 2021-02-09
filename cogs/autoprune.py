@@ -32,7 +32,7 @@ class AutoPrune(commands.Cog):
             existingData = json.load(json_file)
         t_data = existingData
         
-        if message.content.lower().startswith("pr!ignore") and message.author.guild_permissions.administrator:
+        if message.content.lower().startswith("az!ignore") and message.author.guild_permissions.administrator:
             return
 
         if str(message.channel.id) in t_data:
