@@ -104,13 +104,16 @@ class AutoPrune(commands.Cog):
         message = message[:-2]
 
         await ctx.send(message)
-        await ctx.send("Unfortunately all data has been lost (11/1). Please reconfigure your servers to keep using the bot. When you set a delay, that delay only applies to one specific channel, so you must set the delay for each channel you want to use the bot with.")
 
         with open("./ap_data/guilds.json", "w") as write_file:
             json.dump(data, write_file)
 
     @commands.command()
     async def remove(self, ctx):
+
+        if not ctx.message.author.guild_permissions.administrator:
+            await ctx.send("You must be administrator to use this command")
+            return
 
         with open('./ap_data/guilds.json') as json_file:
             existingData = json.load(json_file)
@@ -147,6 +150,10 @@ class AutoPrune(commands.Cog):
 
     @commands.command()
     async def delay(self, ctx, d: int):
+        if not ctx.message.author.guild_permissions.administrator:
+            await ctx.send("You must be administrator to use this command")
+            return
+
         with open('./ap_data/delays.json') as json_file:
             existingData = json.load(json_file)
         data = existingData
