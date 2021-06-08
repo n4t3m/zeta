@@ -24,25 +24,42 @@ class AutoPrune(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        
-        with open('./ap_data/guilds.json') as json_file:
-            existingData = json.load(json_file)
-        data = existingData
-
-        if str(message.guild.id) not in data:
-            return
-
-        with open('./ap_data/delays.json') as json_file:
-            existingData = json.load(json_file)
-        t_data = existingData
-        
+    
         if message.content.lower().startswith("az!ignore") and message.author.guild_permissions.administrator:
             return
-
-        if str(message.channel.id) in t_data:
-            d = t_data[str(message.channel.id)]
-            await self.remove_msg(message, d)
+        
+        if self.collection.count_documents( {"_id": str(message.channel.id)} ) == 0:
             return
+
+        r = self.collection.find_one({"_id": str(message.channel.id)})
+
+        if not r:
+            return
+        
+        d = r['delay']
+
+        #We need to make sure the channel settings match the message, and if we should remove it or not.
+
+        #First, remove only bot messages
+        if not message.author.bot and r['bot_only']:
+                #if the user is not a bot and bot_only is activated, return
+                return
+        
+        #Next, we need to check for attachments
+        
+        # if you're only allowed to send attachments and nothing more
+        if r['remove_no_attachment']:
+            if len(message.attachments)!=0 and len(message.content)==0:
+                #if the bot should only prune messages without attachmeents
+                return
+        
+        #If we want to remove everything with attachments but let everything without attachments pass
+        if r['remove_all_attachment']:
+            if len(message.attachments)==0:
+                return  
+
+        await self.remove_msg(message, d)
+        return
 
     #Commands
     
@@ -58,7 +75,8 @@ class AutoPrune(commands.Cog):
                 "guild": str(ctx.guild.id),
                 "delay": config.DEFAULT_DELAY,
                 "created_by": ctx.message.author.name,
-                "attatchment_only": False,
+                "remove_no_attachment": False,
+                "remove_all_attachment": False,
                 "bot_only": False
                 })
         else:
@@ -180,7 +198,7 @@ class AutoPrune(commands.Cog):
             return
 
     @commands.command()
-    async def toggleattachments(self, ctx):
+    async def toggleonlyattachments(self, ctx):
         if not ctx.message.author.guild_permissions.administrator:
             await ctx.send("You must be administrator to use this command")
             return
@@ -195,15 +213,50 @@ class AutoPrune(commands.Cog):
             await ctx.channel.send("Something bad happened")
             return
 
-        update_r = self.collection.update_one( {"_id": str(ctx.channel.id)}, {"$set": {"attatchment_only": not r['attatchment_only']}}  )
+        update_r = self.collection.update_one( {"_id": str(ctx.channel.id)}, {"$set": {"remove_no_attachment": not r['remove_no_attachment']}}  )
 
         r = self.collection.find_one( {"_id": str(ctx.channel.id)} )
 
         if update_r.acknowledged:
             r = self.collection.find_one( {"_id": str(ctx.channel.id)} )
             if r:
-                if r['attatchment_only']:
-                    return await ctx.send("Only messages with attachments will be pruned.")
+                if r['remove_no_attachment']:
+                    return await ctx.send("Only messages without attachments will be pruned.")
+                else:
+                    return await ctx.send("All types of messages will be pruned.")
+            else:
+                await ctx.send("Something bad happened")
+                return
+            return
+        else:
+            await ctx.send("Something bad happened. Please join the official server and report this to the developer. https://discord.gg/4e25RDd")
+            return
+
+    @commands.command()
+    async def togglenoattachments(self, ctx):
+        if not ctx.message.author.guild_permissions.administrator:
+            await ctx.send("You must be administrator to use this command")
+            return
+
+        if self.collection.count_documents( {"_id": str(ctx.channel.id)} ) == 0:
+            await ctx.send(f"Nothing happened as {ctx.channel.name} was not being pruned in the first place.")
+            return
+
+        r = self.collection.find_one( {"_id": str(ctx.channel.id)} )
+
+        if not r:
+            await ctx.channel.send("Something bad happened")
+            return
+
+        update_r = self.collection.update_one( {"_id": str(ctx.channel.id)}, {"$set": {"remove_all_attachment": not r['remove_all_attachment']}}  )
+
+        r = self.collection.find_one( {"_id": str(ctx.channel.id)} )
+
+        if update_r.acknowledged:
+            r = self.collection.find_one( {"_id": str(ctx.channel.id)} )
+            if r:
+                if r['remove_all_attachment']:
+                    return await ctx.send("Only messages without attachments will be pruned.")
                 else:
                     return await ctx.send("All types of messages will be pruned.")
             else:
