@@ -179,6 +179,41 @@ class AutoPrune(commands.Cog):
             await ctx.send("Something bad happened. Please join the official server and report this to the developer. https://discord.gg/4e25RDd")
             return
 
+    @commands.command()
+    async def toggleattachments(self, ctx):
+        if not ctx.message.author.guild_permissions.administrator:
+            await ctx.send("You must be administrator to use this command")
+            return
+
+        if self.collection.count_documents( {"_id": str(ctx.channel.id)} ) == 0:
+            await ctx.send(f"Nothing happened as {ctx.channel.name} was not being pruned in the first place.")
+            return
+
+        r = self.collection.find_one( {"_id": str(ctx.channel.id)} )
+
+        if not r:
+            await ctx.channel.send("Something bad happened")
+            return
+
+        update_r = self.collection.update_one( {"_id": str(ctx.channel.id)}, {"$set": {"attatchment_only": not r['attatchment_only']}}  )
+
+        r = self.collection.find_one( {"_id": str(ctx.channel.id)} )
+
+        if update_r.acknowledged:
+            r = self.collection.find_one( {"_id": str(ctx.channel.id)} )
+            if r:
+                if r['attatchment_only']:
+                    return await ctx.send("Only messages with attachments will be pruned.")
+                else:
+                    return await ctx.send("All types of messages will be pruned.")
+            else:
+                await ctx.send("Something bad happened")
+                return
+            return
+        else:
+            await ctx.send("Something bad happened. Please join the official server and report this to the developer. https://discord.gg/4e25RDd")
+            return
+
 
     @commands.command()
     async def checkdelay(self, ctx):
