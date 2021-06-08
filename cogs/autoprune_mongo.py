@@ -5,12 +5,16 @@ import json
 import asyncio
 import config
 import os
+from pymongo import MongoClient
 
 class AutoPrune(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
         self.prefix = config.PREFIX
+        self.connection = MongoClient("mongodb://localhost")
+        self.db = self.connection["zeta"]
+        self.collection = self.db["autoprune"]
 
     #Events
 
@@ -47,66 +51,35 @@ class AutoPrune(commands.Cog):
         if not ctx.message.author.guild_permissions.administrator:
             await ctx.send("You must be administrator to use this command")
             return
-
-        with open('./ap_data/guilds.json') as json_file:
-            existingData = json.load(json_file)
-        data = existingData
-
-        if str(ctx.guild.id) not in data:
-            data[str(ctx.guild.id)] = []
-
-        if ctx.message.channel.id not in data[str(ctx.guild.id)]:
-            data[str(ctx.guild.id)].append(ctx.message.channel.id)
+        
+        if self.collection.count_documents( {"_id": str(ctx.channel.id)} ) == 0:
+            self.collection.insert_one({
+                "_id": str(ctx.channel.id),
+                "guild": str(ctx.guild.id),
+                "delay": config.DEFAULT_DELAY,
+                "created_by": ctx.message.author.name,
+                "attatchment_only": False,
+                "bot_only": False
+                })
         else:
-            print("This channel already has pruning enabled. Use the remove command in this channel if you would like to remove it.")
+            await ctx.channel.send("Channel is already being pruned.")
+            return
         
-
-        await ctx.send("Added " + ctx.message.channel.name + " to pruned channels. Use the channels command to see which channels are being pruned.")
-
-        with open("./ap_data/guilds.json", "w") as write_file:
-            json.dump(data, write_file)
-        
-        with open('./ap_data/delays.json') as json_file:
-            existingData = json.load(json_file)
-        data = existingData
-
-        if str(ctx.channel.id) not in data:
-            data[str(ctx.channel.id)] = 300
-
-        with open("./ap_data/delays.json", "w") as write_file:
-            json.dump(data, write_file)
+        await ctx.channel.send("Success!")
 
     @commands.command()
     async def channels(self, ctx):
+        results = self.collection.find({"guild": str(ctx.guild.id)})
+        resp = "===Channels Being Pruned===\n"
 
-        with open('./ap_data/guilds.json') as json_file:
-            existingData = json.load(json_file)
-        data = existingData
-
-        if str(ctx.guild.id) not in data:
-            await ctx.send("This server has not been configured! Use the command ``addChannel`` to start pruning new messages!")
-            return
-        
-
-        if len(data[str(ctx.guild.id)])==0:
-            await ctx.send("This server has no channels configured!")
-            return
-
-        message = "Channels Being Pruned: "
-
-        for x in data[str(ctx.guild.id)]:
+        for entry in results:
             try:
-                channel = self.bot.get_channel(x)
-                message = message + channel.name + ", "
+                c = self.bot.get_channel(int(entry['_id']))
+                resp+= f"{c.mention}\n"
             except:
-                pass
+                self.collection.delete_one(entry)
 
-        message = message[:-2]
-
-        await ctx.send(message)
-
-        with open("./ap_data/guilds.json", "w") as write_file:
-            json.dump(data, write_file)
+        await ctx.channel.send(resp.strip())  
 
     @commands.command()
     async def remove(self, ctx):
@@ -190,6 +163,18 @@ class AutoPrune(commands.Cog):
     @commands.command()
     async def ignore(self, ctx):
         return
+
+    @commands.command()
+    async def test_fake_data_enterdb(self, ctx):
+        try:
+            self.collection.insert_one({
+                "_id": str(ctx.message.id),
+                "content": ctx.message.content,
+                "author": ctx.message.author.name,
+                "a new field that others will not have": "poggers"
+            })
+        except:
+            await ctx.channel.send("wwww")
 
     
     
