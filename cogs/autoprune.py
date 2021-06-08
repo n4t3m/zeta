@@ -128,17 +128,20 @@ class AutoPrune(commands.Cog):
 
     @commands.command()
     async def checkdelay(self, ctx):
-        with open('./ap_data/delays.json') as json_file:
-            existingData = json.load(json_file)
-        data = existingData
+        if self.collection.count_documents( {"_id": str(ctx.channel.id)} ) == 0:
+            await ctx.send(f"Nothing happened as {ctx.channel.name} was not being pruned in the first place (so there is no delay).")
+            return
+        
+        r = self.collection.find_one( {"_id": str(ctx.channel.id)} )
 
-        if str(ctx.channel.id) not in data:
-            data[str(ctx.channel.id)] = 300
-        
-        await ctx.send("Current Channel's Delay: " + str(data[str(ctx.channel.id)]) + " seconds." )
-        
-        with open("./ap_data/delays.json", "w") as write_file:
-            json.dump(data, write_file)
+        if r:
+            await ctx.send(f"Delay in {ctx.channel.name} is {r['delay']} seconds.")
+            return
+        else:
+            await ctx.send("Something bad happened. Please join the official server and report this to the developer. https://discord.gg/4e25RDd")
+            return
+
+
 
     async def remove_msg(self, message, delay):
         c_name = message.channel.name
