@@ -88,37 +88,18 @@ class AutoPrune(commands.Cog):
             await ctx.send("You must be administrator to use this command")
             return
 
-        with open('./ap_data/guilds.json') as json_file:
-            existingData = json.load(json_file)
-        data = existingData
-
-        if str(ctx.guild.id) not in data:
-            await ctx.send("This server has no channels configured!")
+        if self.collection.count_documents( {"_id": str(ctx.channel.id)} ) == 0:
+            await ctx.send(f"Nothing happened as {ctx.channel.name} was not being pruned in the first place.")
             return
 
-        if ctx.message.channel.id not in data[str(ctx.guild.id)]:
-            await ctx.send("Channel cannot be removed as messages are not being removed here!")
+        r = self.collection.delete_one({"_id": str(ctx.channel.id)})
+
+        if r.acknowledged:
+            await ctx.send(f"{ctx.channel.name} will no longer be pruned.")
             return
-
-        data[str(ctx.guild.id)].remove(ctx.message.channel.id)
-
-        with open("./ap_data/guilds.json", "w") as write_file:
-            json.dump(data, write_file)
-
-        with open('./ap_data/delays.json') as json_file:
-            existingData = json.load(json_file)
-        data = existingData
-
-        if str(ctx.channel.id) not in data:
-            await ctx.send("This channel has not been configured!")
+        else:
+            await ctx.send("Something bad happened. Please join the official server and report this to the developer. https://discord.gg/4e25RDd")
             return
-
-        del data[str(ctx.channel.id)]
-        
-        await ctx.send("Removed channel: " + ctx.channel.name)
-
-        with open("./ap_data/delays.json", "w") as write_file:
-            json.dump(data, write_file)
 
 
     @commands.command()
