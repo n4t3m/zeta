@@ -108,16 +108,23 @@ class AutoPrune(commands.Cog):
             await ctx.send("You must be administrator to use this command")
             return
 
-        with open('./ap_data/delays.json') as json_file:
-            existingData = json.load(json_file)
-        data = existingData
+        if d>86400:
+            await ctx.send("The maximum delay is set to 1 day because people like to abuse the bot.")
+            return
 
-        data[str(ctx.channel.id)] = d
+        if self.collection.count_documents( {"_id": str(ctx.channel.id)} ) == 0:
+            await ctx.send(f"Nothing happened as {ctx.channel.name} was not being pruned in the first place.")
+            return
 
-        await ctx.send("New Channel Delay Set: " + str(data[str(ctx.channel.id)]) + " seconds. Delays are now specific to channels. In each channel you want to prune in, you must set the delay using the delay command.")
+        r = self.collection.update_one( {"_id": str(ctx.channel.id)}, {"$set": {"delay": d}}  )
 
-        with open("./ap_data/delays.json", "w") as write_file:
-            json.dump(data, write_file)
+        if r.acknowledged:
+            await ctx.send(f"Updated AutoPrune delay to {d} seconds.")
+            return
+        else:
+            await ctx.send("Something bad happened. Please join the official server and report this to the developer. https://discord.gg/4e25RDd")
+            return
+
 
     @commands.command()
     async def checkdelay(self, ctx):
