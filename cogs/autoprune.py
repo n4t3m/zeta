@@ -94,7 +94,7 @@ class AutoPrune(commands.Cog):
                 "created_by": ctx.message.author.name,
                 "remove_no_attachment": False,
                 "remove_all_attachment": False,
-                "bot_only": False
+                "bot_only": False,
                 "premium": False
                 })
         else:
@@ -106,16 +106,22 @@ class AutoPrune(commands.Cog):
     @commands.command()
     async def channels(self, ctx):
         results = self.collection.find({"guild": str(ctx.guild.id)})
-        resp = "===Channels Being Pruned===\n"
+
+        #resp = "===Channels Being Pruned===\n"
+        embed=discord.Embed(title="Channels Being Pruned")
 
         for entry in results:
-            try:
-                c = self.bot.get_channel(int(entry['_id']))
-                resp+= f"{c.mention}\n"
-            except:
-                self.collection.delete_one(entry)
+            #try:
+            c = self.bot.get_channel(int(entry['_id']))
+            embed.add_field(name=f"{c.name} - Delay: {entry['delay']} seconds", value=f"{c.mention}", inline=False)
+            #except:
+                #print("here")
+                #self.collection.delete_one(entry)
+        
+        if self.collection.find({"guild": str(ctx.guild.id)}).count()==0:
+            embed.add_field(name="Notice", value=f"{ctx.guild.name} has no channels being pruned.", inline=False)
 
-        await ctx.channel.send(resp.strip()) 
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def channelinfo(self, ctx):
@@ -129,8 +135,17 @@ class AutoPrune(commands.Cog):
 
         r = self.collection.find_one( {"_id": str(ctx.channel.id)} )
 
+
         if r:
-            await ctx.send(str(r))
+            embed=discord.Embed(title="Autoprune Channel Info")
+            embed.add_field(name="Channel Name", value=f"{ctx.channel.name}", inline=True)
+            embed.add_field(name="Guild Name", value=f"{ctx.guild.name}", inline=True)
+            embed.add_field(name="Delay", value=f"{r['delay']}", inline=True)
+            embed.add_field(name="Mode: No Attachments", value=f"{r['remove_no_attachment']}", inline=True)
+            embed.add_field(name="Mode: All Attachments", value=f"{r['remove_all_attachment']}", inline=True)
+            embed.add_field(name="Mode: Only Remove Bot Messages", value=f"{r['bot_only']}", inline=True)
+            embed.add_field(name="Premium", value=f"{r['premium']}", inline=True)
+            await ctx.send(embed=embed)
             return
         else:
             await ctx.send("Something bad happened. Please join the official server and report this to the developer. https://discord.gg/4e25RDd")
