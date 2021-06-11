@@ -23,6 +23,23 @@ class AutoPrune(commands.Cog):
         print(os.path.basename(__file__)[:-3].upper() + " loaded succesfully!")
 
     @commands.Cog.listener()
+    async def on_guild_remove(self, guild):
+        #When removed from a server, we want to clean up the database
+
+        if self.collection.count_documents( {"guild": str(guild.id)} ) == 0:
+            print(f"Zeta has been removed from {guild.name}.")
+            return
+
+        r = self.collection.delete_many({"guild": str(guild.id)})
+
+        if r.acknowledged:
+            print(f"{guild.name} will no longer be pruned as they have removed Zeta.")
+            return
+        else:
+            print("Something bad happened.")
+            return
+
+    @commands.Cog.listener()
     async def on_message(self, message):
     
         if message.content.lower().startswith("az!ignore") and message.author.guild_permissions.administrator:
@@ -78,6 +95,7 @@ class AutoPrune(commands.Cog):
                 "remove_no_attachment": False,
                 "remove_all_attachment": False,
                 "bot_only": False
+                "premium": False
                 })
         else:
             await ctx.channel.send("Channel is already being pruned.")
