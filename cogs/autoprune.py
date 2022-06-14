@@ -61,7 +61,7 @@ class Cog(commands.Cog):
         with open('./ap_data/guilds.json') as json_file:
             data = json.load(json_file)
 
-        gid = ctx.guild.ix
+        gid = ctx.guild.id
 
         if str(gid) not in data:
             await ctx.respond("This server has not been configured! Use the command ``/addChannel`` to start pruning new messages!", ephemeral=True)
