@@ -91,5 +91,50 @@ class Cog(commands.Cog):
         with open("./ap_data/guilds.json", "w") as write_file:
             json.dump(data, write_file)
 
+    @slash_command(
+        name="remove",
+        description="Remove this channel from being pruned"
+        )
+    async def remove(self, ctx, channel: Option(discord.TextChannel, "Channel", required=True)):
+        
+        if not ctx.author.guild_permissions.administrator:
+            await ctx.respond("You must be administrator to use this command", ephemeral=True)
+            return
+
+        with open('./ap_data/guilds.json') as json_file:
+            data = json.load(json_file)
+
+
+        gid = ctx.guild.id
+        cid = ctx.channel.id
+
+        if str(gid) not in data:
+            await ctx.respond("No messages are being removed in this channel.", ephemeral=True)
+            return
+
+        if cid not in data[str(gid)]:
+            await ctx.respond("No messages are being removed in this channel", ephemeral=True)
+            return
+
+        data[str(gid)].remove(cid)
+
+        with open("./ap_data/guilds.json", "w") as write_file:
+            json.dump(data, write_file)
+
+        with open('./ap_data/delays.json') as json_file:
+            data = json.load(json_file)
+
+        if str(cid) not in data:
+            await ctx.respond("This channel has not been configured!", ephemeral=True)
+            return
+
+        del data[str(cid)]
+        
+        await ctx.respond(f"Removed channel: {ctx.channel.name}", ephemeral=True)
+
+        with open("./ap_data/delays.json", "w") as write_file:
+            json.dump(data, write_file)
+
+            
 def setup(client):
     client.add_cog(Cog(client))
