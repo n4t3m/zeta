@@ -27,8 +27,7 @@ class Cog(commands.Cog):
         gid = channel.guild.id
 
         with open('./ap_data/guilds.json') as json_file:
-            existingData = json.load(json_file)
-        data = existingData
+            data = json.load(json_file)
 
         if str(gid) not in data:
             data[str(gid)] = []
@@ -36,17 +35,16 @@ class Cog(commands.Cog):
         if cid not in data[str(gid)]:
             data[str(gid)].append(cid)
         else:
-            print("This channel already has pruning enabled. Use the remove command in this channel if you would like to remove it.")
-        
+            await ctx.respond("This channel already has pruning enabled. Use the remove command in this channel if you would like to remove it.")
+            return
 
-        await ctx.respond("Added " + channel.name + " to pruned channels. Use the channels command to see which channels are being pruned.")
+        await ctx.respond(f"Added {channel.name} to pruned channels. Use the channels command to see which channels are being pruned.")
 
         with open("./ap_data/guilds.json", "w") as write_file:
             json.dump(data, write_file)
         
         with open('./ap_data/delays.json') as json_file:
-            existingData = json.load(json_file)
-        data = existingData
+            data = json.load(json_file)
 
         if str(cid) not in data:
             data[str(cid)] = 300
