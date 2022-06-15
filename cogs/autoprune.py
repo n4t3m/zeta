@@ -11,6 +11,30 @@ class Cog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        
+        with open('./ap_data/guilds.json') as json_file:
+            existingData = json.load(json_file)
+        data = existingData
+
+        if str(message.guild.id) not in data:
+            return
+
+        with open('./ap_data/delays.json') as json_file:
+            existingData = json.load(json_file)
+        t_data = existingData
+        
+        if message.content.lower().startswith("az!ignore") and message.author.guild_permissions.administrator:
+            return
+
+        if str(message.channel.id) in t_data:
+            d = t_data[str(message.channel.id)]
+            await self.remove_msg(message, d)
+            return
+        
+        print('msg detected')
+
     @slash_command(description="Get the ID of a user")
     async def id(self, ctx, user: Option(discord.User, "User", required=False)):
         user = user or ctx.author
