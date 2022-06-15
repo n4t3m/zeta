@@ -3,6 +3,9 @@ import discord
 from discord.ext import commands
 from discord.commands import slash_command, Option
 import json
+import asyncio
+
+from grpc import channel_ready_future
 
 class Cog(commands.Cog):
     def __init__(self, client):
@@ -135,6 +138,54 @@ class Cog(commands.Cog):
         with open("./ap_data/delays.json", "w") as write_file:
             json.dump(data, write_file)
 
-            
+    @slash_command(
+        name="setdelay",
+        description="Set the delay")
+    async def setdelay(self, ctx, d: Option(int, "Message Remove Delay", required=True)):
+        if not ctx.author.guild_permissions.administrator:
+            await ctx.respond("You must be administrator to use this command", ephemeral=True)
+            return
+
+        with open('./ap_data/delays.json') as json_file:
+            data = json.load(json_file)
+
+        data[str(ctx.channel.id)] = d
+
+        await ctx.respond("New Channel Delay Set: " + str(data[str(ctx.channel.id)]) + " seconds. Delays are now specific to channels. In each channel you want to prune in, you must set the delay using the delay command.", ephemeral=True)
+        with open("./ap_data/delays.json", "w") as write_file:
+            json.dump(data, write_file)
+
+    @slash_command(
+        name="checkdelay",
+        description="Check the current delay for a specified channel.")
+    async def checkdelay(self, ctx,  channel: Option(discord.TextChannel, "Channel", required=False)):
+
+        with open('./ap_data/delays.json') as json_file:
+            data = json.load(json_file)
+
+        channel = channel or ctx.channel
+
+        cid = channel.id
+
+        if str(cid) not in data:
+            await ctx.respond(f"{channel.name}'s messages are not being pruned. Use /addchannel to prune messages in a channel", ephemeral=True)
+            return
+        
+        await ctx.respond(f"{channel.name}'s Current Delay: {str(data[str(cid)])} seconds.", ephemeral=True)
+        
+        with open("./ap_data/delays.json", "w") as write_file:
+            json.dump(data, write_file)
+
+
+
+    async def remove_msg(self, message, delay):
+        c_name = message.channel.name
+        g_name = message.guild.name
+        await asyncio.sleep(delay) 
+        await message.delete()
+        print("A message has been automatically pruned in " + c_name + " in the server " + g_name)
+        return
+
+
 def setup(client):
     client.add_cog(Cog(client))
