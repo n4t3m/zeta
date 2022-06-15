@@ -18,9 +18,9 @@ class Cog(commands.Cog):
 
     @slash_command(
         name="addchannel",
-        description="Let this channel be pruned"
+        description="Select a channel to prune messages in."
         )
-    async def addchannel(self, ctx, channel: Option(discord.TextChannel, "Channel", required=True)):
+    async def addchannel(self, ctx, channel: Option(discord.TextChannel, "Channel to prune messages in", required=True)):
         if not ctx.author.guild_permissions.administrator:
             await ctx.respond("You must be administrator to use this command", ephemeral=True)
             return
@@ -96,7 +96,7 @@ class Cog(commands.Cog):
 
     @slash_command(
         name="remove",
-        description="Remove this channel from being pruned"
+        description="Select a channel to remove pruning in"
         )
     async def remove(self, ctx, channel: Option(discord.TextChannel, "Channel", required=True)):
         
@@ -140,8 +140,8 @@ class Cog(commands.Cog):
 
     @slash_command(
         name="setdelay",
-        description="Set the delay")
-    async def setdelay(self, ctx, d: Option(int, "Message Remove Delay", required=True)):
+        description="Set the delay before messages are deleted in a channel")
+    async def setdelay(self, ctx, delay: Option(int, "Number of seconds that should be waited before deleting a message.", required=True)):
         if not ctx.author.guild_permissions.administrator:
             await ctx.respond("You must be administrator to use this command", ephemeral=True)
             return
@@ -149,9 +149,9 @@ class Cog(commands.Cog):
         with open('./ap_data/delays.json') as json_file:
             data = json.load(json_file)
 
-        data[str(ctx.channel.id)] = d
+        data[str(ctx.channel.id)] = delay
 
-        await ctx.respond("New Channel Delay Set: " + str(data[str(ctx.channel.id)]) + " seconds. Delays are now specific to channels. In each channel you want to prune in, you must set the delay using the delay command.", ephemeral=True)
+        await ctx.respond(f"New Channel Delay for {ctx.channel.name} Set: {str(data[str(ctx.channel.id)])} seconds.", ephemeral=True)
         with open("./ap_data/delays.json", "w") as write_file:
             json.dump(data, write_file)
 
